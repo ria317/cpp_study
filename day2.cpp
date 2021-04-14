@@ -44,28 +44,44 @@ return min( dfs(x, y-1), dfs(x-1, y))
 #include <vector>
 #include <climits>
 
-#define MAX_COST 1000000
 
-int DFS(int x, int y, vector<vector<int>>& v, int& min_cost, int& curr_cost) {
+int DFS_COUNT;
+int DFS2_COUNT;
 
+int DFS(int x, int y, vector<vector<int>>& v) {
+
+    DFS_COUNT++;
     // boundary check
     if( x < 0 || y < 0 )
-        return 0;
+        return INT_MAX;
 
-    curr_cost+= v[x][y];
+    if( x == 0 && y == 0 )
+        return v[x][y];
 
-    //cout << "current: " << curr_cost << ", v: " << v[x][y] << endl;
-    if( x == 0 && y == 0 ) {
-        // 도착 했을 때 현재까지의 min_cost와 비교하여 비용이 적응경우 UPDATE 함.
-        cout << " finish , current cost : " << curr_cost << "  min_cost : " << min_cost << endl;
-        //min_cost = min(curr_cost, min_cost);
-        //curr_cost -=v[x][y];
-        return curr_cost;
+    return v[x][y] + min( DFS(x-1, y, v), DFS(x, y-1, v));
+
+}
+
+
+// DFS  가지치기 추가된버전
+int DFS2( int x, int y, vector<vector<int>>& v, int curr_cost, int& min_cost) {
+
+    DFS2_COUNT++;
+    // boundary check
+    if( x < 0 || y < 0 )
+        return INT_MAX;
+
+    curr_cost += v[x][y];
+
+    if( curr_cost > min_cost ) {
+        return  INT_MAX;
     }
-    DFS(x-1, y, v, min_cost, curr_cost);
-    DFS(x, y-1, v, min_cost, curr_cost);
-    curr_cost -=v[x][y];
-    return 1;
+
+    if( x == 0 && y == 0 ) {
+        min_cost = min(min_cost, curr_cost);
+        return v[x][y];
+    }
+    return min(min_cost, abs(v[x][y] + min( DFS2(x-1, y, v, curr_cost, min_cost), DFS2(x, y-1, v, curr_cost, min_cost))));
 
 }
 
@@ -73,23 +89,28 @@ int solve(vector<vector<int>>& v) {
 
     int row = v.size();
     int col = v[0].size();
-    int min_cost = INT_MAX;
+
     int curr_cost = 0;
+    int min_cost = INT_MAX;
 
-    DFS(row-1, col-1, v, min_cost, curr_cost);
+    cout << "DFS : " << DFS(row-1, col-1, v) << ", call count : " << DFS_COUNT << endl;
 
-    //cout << min_cost << endl;
-    return min_cost;
+    cout << "DFS2 : " << DFS2(row-1, col-1, v, curr_cost, min_cost) << ", call count : " << DFS2_COUNT << endl;
+    return 1;
 }
 
 int main(int argc, char *argv[])
 {
     vector<vector<int>> v =
-    {{3,9,2},
-     {6,4,5},
-     {1,7,3}
+    {{3,9,2,5,3,2,4},
+     {6,4,5,2,4,2,6},
+     {1,7,3,3,7,2,4},
+     {1,7,3,6,7,2,5},
+     {1,7,8,3,7,1,4},
+     {1,7,3,9,9,2,7}
     };
-    cout << solve(v) << endl;
 
+    solve(v);
+    //cout << "DFS : " << solve(v) << " call count : " << DFS_COUNT << endl;
     return 1;
 }
